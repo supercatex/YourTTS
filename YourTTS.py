@@ -36,7 +36,6 @@ class YourTTS(object):
             self.checkpoint_path: "https://drive.google.com/u/0/uc?id=1fo1E8X39h4YAmbbXNGK3FsSjfSePKTzX&export=download",
             self.encoder_config_path: "https://drive.google.com/u/0/uc?id=1-4IdAZg1Xa_sc1O7VNWxsJd1FOe3Fx_w&export=download",
             os.path.join(self.ref_dir, "Kinda.wav"): "https://drive.google.com/u/0/uc?id=1n9-9jlhjL2ITXmw2YpcEVCWpN8A2vcze&export=download",
-            os.path.join(self.ref_dir, "Shannon.wav"): "https://drive.google.com/u/0/uc?id=13hfJpndHZIJrv3pz9lVE8Qjg4Ik-Sqd6&export=download",
         }
         for k, v in self.paths.items():
             if not os.path.exists(k):
@@ -74,7 +73,7 @@ class YourTTS(object):
             length_scale=1,
             inference_noice_scale=0.3,
             inference_noise_scale_dp=0.3,
-            filename="tmp.wav"):
+            filename="a.wav"):
         # scaler for the duration predictor. The larger it is, the slower the speech.
         self.model.length_scale = length_scale
         # defines the noise variance applied to the random z vector at inference.
