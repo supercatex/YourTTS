@@ -78,7 +78,9 @@ class YourTTS(object):
         reference_files = [os.path.join(self.ref_dir, x) for x in os.listdir(self.ref_dir)]
         self.reference_emb = SE_speaker_manager.compute_d_vector_from_clip(reference_files)
 
-    def say(self, text, language_id=0,
+    def say(self,
+            text,
+            language_id=0,
             length_scale=1,
             inference_noice_scale=0.3,
             inference_noise_scale_dp=0.3,
@@ -91,11 +93,16 @@ class YourTTS(object):
         self.model.inference_noise_scale_dp = inference_noise_scale_dp
 
         wav, alignment, _, _ = synthesis(
-            self.model, text,
-            self.config, self.use_cuda, self.ap,
-            d_vector=self.reference_emb, language_id=language_id,
+            self.model,
+            text,
+            self.config,
+            self.use_cuda,
+            self.ap,
+            d_vector=self.reference_emb,
+            language_id=language_id,
             enable_eos_bos_chars=self.config["enable_eos_bos_chars"],
-            use_griffin_lim=True, do_trim_silence=False,
+            use_griffin_lim=True,
+            do_trim_silence=False,
         ).values()
         IPython.display.display(Audio(wav, rate=self.ap.sample_rate))
         out_path = os.path.join(self.out_dir, filename)
