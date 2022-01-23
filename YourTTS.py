@@ -1,9 +1,7 @@
 import os
-# import requests
 import gdown
 import torch
-import IPython
-from IPython.display import Audio
+from IPython.display import display, Audio
 from playsound import playsound
 from TTS.config import load_config
 from TTS.tts.models import setup_model
@@ -26,7 +24,7 @@ class YourTTS(object):
         self.config_path = os.path.join(self.cfg_dir, "config.json")
         self.language_path = os.path.join(self.cfg_dir, "language_ids.json")
         self.speakers_path = os.path.join(self.cfg_dir, "speakers.json")
-        self.checkpoint_path = os.path.join(self.cfg_dir, "SE_checkpoint.pth.tar")
+        self.encoder_model_path = os.path.join(self.cfg_dir, "encoder_model.pth.tar")
         self.encoder_config_path = os.path.join(self.cfg_dir, "encoder_config.json")
 
         self.paths = {
@@ -38,7 +36,7 @@ class YourTTS(object):
                 "https://drive.google.com/u/0/uc?id=1hB6_mXjoVIkllStFysWdJ9HFglzahluh&export=download",
             self.speakers_path:
                 "https://drive.google.com/u/0/uc?id=1UIfU-a0V1NFz4V1IQMBryztZUn7s_-3d&export=download",
-            self.checkpoint_path:
+            self.encoder_model_path:
                 "https://drive.google.com/u/0/uc?id=1fo1E8X39h4YAmbbXNGK3FsSjfSePKTzX&export=download",
             self.encoder_config_path:
                 "https://drive.google.com/u/0/uc?id=1-4IdAZg1Xa_sc1O7VNWxsJd1FOe3Fx_w&export=download",
@@ -47,10 +45,6 @@ class YourTTS(object):
         }
         for k, v in self.paths.items():
             if not os.path.exists(k):
-                # print("download file:", k)
-                # req = requests.get(v, allow_redirects=True)
-                # with open(k, 'wb') as f:
-                #     f.write(req.content)
                 gdown.download(v, k)
 
         self.use_cuda = torch.cuda.is_available()
@@ -69,14 +63,14 @@ class YourTTS(object):
         self.model.eval()
         if self.use_cuda: self.model = self.model.cuda()
 
-        self.ap = AudioProcessor(**self.config["audio"])
-        SE_speaker_manager = SpeakerManager(
-            encoder_model_path=self.checkpoint_path,
+        self.audio_processor = AudioProcessor(**self.config["audio"])
+        speaker_manager = SpeakerManager(
+            encoder_model_path=self.encoder_model_path,
             encoder_config_path=self.encoder_config_path,
             use_cuda=self.use_cuda
         )
         reference_files = [os.path.join(self.ref_dir, x) for x in os.listdir(self.ref_dir)]
-        self.reference_emb = SE_speaker_manager.compute_d_vector_from_clip(reference_files)
+        self.reference_emb = speaker_manager.compute_d_vector_from_clip(reference_files)
 
     def say(self,
             text,
@@ -97,21 +91,21 @@ class YourTTS(object):
             text,
             self.config,
             self.use_cuda,
-            self.ap,
+            self.audio_processor,
             d_vector=self.reference_emb,
             language_id=language_id,
             enable_eos_bos_chars=self.config["enable_eos_bos_chars"],
             use_griffin_lim=True,
             do_trim_silence=False,
         ).values()
-        IPython.display.display(Audio(wav, rate=self.ap.sample_rate))
+        display(Audio(wav, rate=self.audio_processor.sample_rate))
         out_path = os.path.join(self.out_dir, filename)
-        self.ap.save_wav(wav, out_path)
+        self.audio_processor.save_wav(wav, out_path)
         playsound(out_path)
 
 
 if __name__ == "__main__":
-    _speaker = YourTTS(cfg_dir="./cfg2/")
+    _speaker = YourTTS()
     _speaker.say("I am ready")
 
     while True:
